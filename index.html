@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIREシミュレーション</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>FIREシミュレーション</h1>
+        <p>あなたの財務データに基づき、FIRE達成の可能性をモンテカルロ・シミュレーションで検証します。</p>
+    </header>
+
+    <main>
+        <div class="navigation-container" style="background-color: #f7f9fc; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
+            <h2>📊 ほかにもたくさんあるシミュレーションの中で、なんでこのアプリを使うべきなの？</h2>
+            <p style="text-align: left; line-height: 1.6; font-size: 1.1em;">
+                多くのシンプルな計算ツールは「毎年7%のリターンが固定で得られる」という前提（単一の直線）でシミュレーションを行います。しかし、実際の投資市場には「景気の波」があり、毎年リターンが変動します。
+            </p>
+            <p style="text-align: left; line-height: 1.6; font-size: 1.1em; font-weight: bold;">
+                FIRE計画においては、<span style="color: #c0392b;">市場が思ったように成長しない・暴落・乱高下</span>している中でも、生活出費が発生することが致命的な資産枯渇（FIRE失敗）につながる最大の要因です。
+            </p>
+            <p style="text-align: left; line-height: 1.6;">
+                このシミュレーションは、何千通りもの「乱高下する可能性のある未来」を計算し、そのうち何%のケースで資産が枯渇せずに目標を達成できるかを検証します。
+            </p>
+            <center style="margin: 20px 0;">
+                
+            </center>
+            <p style="text-align: left; line-height: 1.6; font-style: italic; font-size: 0.9em;">
+                本シミュレーションは、「最悪のタイミングでFIREした場合でも計画が耐えうるか」を科学的に評価するためにモンテカルロ法を採用しています。
+            </p>
+        </div>
+        <div class="navigation-container">
+            <h2>設定項目</h2>
+            <nav>
+                <ul>
+                    <li><a href="config.html" class="nav-button">基本設定</a></li>
+                    <li><a href="stocks.html" class="nav-button">保有証券</a></li>
+                    <li><a href="soukan.html" class="nav-button">相関係数</a></li>
+                    <li><a href="tuika.html" class="nav-button">追加投資</a></li>
+                    <li><a href="life_cost.html" class="nav-button">生活費</a></li>
+                    <li><a href="big_expense.html" class="nav-button">大きな出費</a></li>
+                    <li><a href="income.html" class="nav-button">収入</a></li>
+                    <li><a href="tax.html" class="nav-button">税金</a></li>
+                </ul>
+		<br>
+		<br>
+                <ul style="display: flex; flex-direction: column; gap: 10px;">
+                    <li style="display: flex; gap: 10px;">
+                        <button onclick="loadAllSettings()" class="nav-button" style="background-color: #3498db; color: white; flex: 1;">設定ファイルを読み込む</button>
+                        <button onclick="downloadAllSettings()" class="nav-button" style="background-color: #f39c12; color: white; flex: 1;">設定をファイルに書き出す</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="navigation-container simulation-link">
+            <h2>シミュレーション</h2>
+            <nav>
+                <ul style="display: flex; flex-direction: column; gap: 10px;">
+                    <li><a href="simulate.html" class="nav-button">シミュレーション実行</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="app-info">
+            <h3>アプリの使い方</h3>
+            <ol>
+                <li>まずは「基本設定」からシミュレーション期間などを設定してください。</li>
+                <li>次に、「保有証券」や「相関係数」などの詳細なデータを入力してください。</li>
+                <li>全ての準備ができたら、「シミュレーション実行」から結果を確認できます。</li>
+            </ol>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
