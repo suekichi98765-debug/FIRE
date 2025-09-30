@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相関係数</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .instruction-box {
+            background-color: #f0f8ff;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background-color: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>相関係数</h1>
+            <p>保有証券で設定した銘柄間の相関係数を設定します。</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <h2>銘柄間相関係数</h2>
+                
+                <div class="warning-box">
+                    <p>⚠️ <strong>重要: 相関係数の設定について</strong></p>
+                    <ul>
+                        <li><strong>相関係数とは？:</strong> ある銘柄の価格が変動したとき、別の銘柄の価格がどの程度、同じ方向（プラス）または反対の方向（マイナス）に動くかを示す数値です。</li>
+                        <li><strong>値の範囲:</strong> **-1.0** (完全に逆の動き) から **+1.0** (完全に同じ動き) の間で設定してください。</li>
+                        <li>**分散投資効果:** シミュレーションにおいて、この値が低いほど（0やマイナスに近いほど）、ポートフォリオ全体のリスクが抑えられ、資産寿命が延びる傾向があります。逆に、+1.0に近い値を多く設定すると、リスクは高まります。</li>
+                        <li>**推奨値:** 通常、株式同士は0.5〜0.9程度、株式と債券は0.0〜0.5程度の値を設定することが多いですが、ご自身のポートフォリオの特性に合わせて慎重に設定してください。</li>
+                    </ul>
+                </div>
+                
+                <div id="soukanContainer">
+                    </div>
+                <div class="form-actions">
+                    <button id="saveSoukanBtn">設定を保存</button>
+                </div>
+            </div>
+
+            <div class="back-link">
+                <a href="index.html" class="nav-button">メイン画面に戻る</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const soukanContainer = document.getElementById('soukanContainer');
+            const saveSoukanBtn = document.getElementById('saveSoukanBtn');
+
+            const loadSoukanForm = () => {
+                const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
+                const stocks = appData.stocks || [];
+                const soukanData = appData.soukan || [];
+                soukanContainer.innerHTML = '';
+                
+                if (stocks.length > 1) {
+                    for (let i = 0; i < stocks.length; i++) {
+                        for (let j = i + 1; j < stocks.length; j++) {
+                            const meigaraA = stocks[i].Meigara;
+                            const meigaraB = stocks[j].Meigara;
+                            const existingSoukan = soukanData.find(s => 
+                                (s.A_Meigara === meigaraA && s.B_Meigara === meigaraB) ||
+                                (s.A_Meigara === meigaraB && s.B_Meigara === meigaraA)
+                            );
+                            const keisuValue = existingSoukan ? existingSoukan.keisu : 0.0;
+
+                            const formHtml = `
+                                <div class="form-group">
+                                    <label>${meigaraA} と ${meigaraB}:</label>
+                                    <input type="number" step="0.01" class="soukan-keisu" 
+                                           data-meigara-a="${meigaraA}" data-meigara-b="${meigaraB}" 
+                                           value="${keisuValue}" required>
+                                </div>
+                            `;
+                            soukanContainer.innerHTML += formHtml;
+                        }
+                    }
+                } else {
+                    soukanContainer.innerHTML = `<p>相関係数を設定するには、2つ以上の銘柄を登録してください。</p>`;
+                }
+            };
+
+            saveSoukanBtn.addEventListener('click', () => {
+                const soukanData = [];
+                let isValid = true;
+                
+                document.querySelectorAll('.soukan-keisu').forEach(input => {
+                    const value = parseFloat(input.value);
+
+                    if (isNaN(value) || value < -1.0 || value > 1.0) {
+                        isValid = false;
+                        input.classList.add('error-input');
+                        return;
+                    } else {
+                        input.classList.remove('error-input');
+                    }
+
+                    soukanData.push({
+                        A_Meigara: input.dataset.meigaraA,
+                        B_Meigara: input.dataset.meigaraB,
+                        keisu: value
+                    });
+                });
+
+                if (!isValid) {
+                    alert('相関係数は-1.0から1.0までの数値を入力してください。');
+                    return;
+                }
+
+                const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
+                appData.soukan = soukanData;
+                localStorage.setItem('fireSimulatorData', JSON.stringify(appData));
+                alert('相関係数の設定が保存されました！');
+            });
+
+            loadSoukanForm();
+        });
+    </script>
+</body>
+</html>

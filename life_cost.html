@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活費</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .life-cost-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .life-cost-item h3 {
+            margin-top: 0;
+            color: #34495e;
+        }
+        .life-cost-item .remove-btn {
+            background-color: #95a5a6;
+            margin-top: 10px;
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .input-group label {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        .input-group input {
+            width: auto;
+            flex-grow: 1;
+        }
+        .instruction-box {
+            background-color: #f0f8ff;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>生活費</h1>
+            <p>毎月の生活費を設定します。</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <h2>生活費イベント一覧</h2>
+                <div class="instruction-box">
+                    <p><strong>💡 入力方法:</strong></p>
+                    <ul>
+                        <li><strong>適用開始時期（年/月）:</strong> 設定した生活費が適用され始めるタイミングです。</li>
+                        <li>この生活費は、**次の適用開始時期が設定されるまで**、継続して適用されます。</li>
+                        <li><strong>0年0月または0年1月:</strong> どちらも「シミュレーション開始月」を意味します。</li>
+                    </ul>
+                </div>
+                <div id="lifeCostContainer">
+                    </div>
+                <div class="form-actions">
+                    <button id="addLifeCostBtn" type="button">生活費を追加</button>
+                    <button id="saveLifeCostBtn">設定を保存</button>
+                </div>
+            </div>
+
+            <div class="back-link">
+                <a href="index.html" class="nav-button">メイン画面に戻る</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lifeCostContainer = document.getElementById('lifeCostContainer');
+            const addLifeCostBtn = document.getElementById('addLifeCostBtn');
+            const saveLifeCostBtn = document.getElementById('saveLifeCostBtn');
+
+            const createLifeCostItem = (index, lifeCostData = {}) => {
+                const lifeCostItem = document.createElement('div');
+                lifeCostItem.classList.add('life-cost-item');
+                lifeCostItem.innerHTML = `
+                    <h3>生活費設定 ${index + 1}</h3>
+                    <div class="form-group input-group">
+                        <label>適用開始時期:</label>
+                        <input type="number" class="life-cost-year" placeholder="年" value="${lifeCostData.month !== undefined ? Math.floor(lifeCostData.month / 12) : ''}" required>
+                        <span>年</span>
+                        <input type="number" class="life-cost-month" placeholder="月" value="${lifeCostData.month !== undefined ? (lifeCostData.month % 12) : ''}" required>
+                        <span>月</span>
+                    </div>
+                    <div class="form-group input-group">
+                        <label>金額（円/月）:</label>
+                        <input type="text" class="life-cost-amount" value="${lifeCostData.amount || ''}" inputmode="numeric" pattern="[0-9,]*" required>
+                    </div>
+                    <button type="button" class="remove-btn">削除</button>
+                `;
+                
+                lifeCostItem.querySelector('.remove-btn').addEventListener('click', () => {
+                    lifeCostItem.remove();
+                    updateLifeCostNumbers();
+                });
+
+                return lifeCostItem;
+            };
+
+            const updateLifeCostNumbers = () => {
+                const items = document.querySelectorAll('.life-cost-item');
+                items.forEach((item, index) => {
+                    item.querySelector('h3').textContent = `生活費設定 ${index + 1}`;
+                });
+            };
+
+            const loadLifeCost = () => {
+                const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
+                const lifeCost = appData.lifeCost || [];
+                lifeCostContainer.innerHTML = '';
+                if (lifeCost.length > 0) {
+                    lifeCost.forEach((data, index) => {
+                        lifeCostContainer.appendChild(createLifeCostItem(index, data));
+                    });
+                } else {
+                    lifeCostContainer.appendChild(createLifeCostItem(0));
+                }
+                updateLifeCostNumbers();
+                document.querySelectorAll('input[inputmode="numeric"]').forEach(input => {
+                    if (input.value) {
+                        const value = input.value.replace(/,/g, '');
+                        input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    }
+                    input.addEventListener('input', formatNumberInput);
+                });
+            };
+
+            addLifeCostBtn.addEventListener('click', () => {
+                const index = lifeCostContainer.children.length;
+                const newLifeCostItem = createLifeCostItem(index);
+                lifeCostContainer.appendChild(newLifeCostItem);
+                updateLifeCostNumbers();
+                newLifeCostItem.querySelectorAll('input[inputmode="numeric"]').forEach(input => {
+                    input.addEventListener('input', formatNumberInput);
+                });
+            });
+
+            saveLifeCostBtn.addEventListener('click', () => {
+                const lifeCosts = [];
+                let isValid = true;
+                
+                document.querySelectorAll('.life-cost-item').forEach(item => {
+                    const yearInput = item.querySelector('.life-cost-year');
+                    const monthInput = item.querySelector('.life-cost-month');
+                    const amountInput = item.querySelector('.life-cost-amount');
+                    
+                    const year = parseInt(yearInput.value, 10);
+                    const month = parseInt(monthInput.value, 10);
+                    const amount = parseInt(amountInput.value.replace(/,/g, ''), 10);
+                    
+                    if (isNaN(year) || isNaN(month) || isNaN(amount) || year < 0 || month < 0 || month > 11 || amount < 0) {
+                        isValid = false;
+                        yearInput.classList.add('error-input');
+                        monthInput.classList.add('error-input');
+                        amountInput.classList.add('error-input');
+                        return;
+                    } else {
+                        yearInput.classList.remove('error-input');
+                        monthInput.classList.remove('error-input');
+                        amountInput.classList.remove('error-input');
+                    }
+                    
+                    const totalMonths = year * 12 + month;
+
+                    lifeCosts.push({
+                        month: totalMonths,
+                        amount: amount
+                    });
+                });
+
+                if (!isValid) {
+                    alert('全ての項目に正しい数値を入力してください。年数は0以上、月は0から11までの数値を入力してください。');
+                    return;
+                }
+
+                const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
+                appData.lifeCost = lifeCosts.sort((a, b) => a.month - b.month); // 総月数でソート
+                localStorage.setItem('fireSimulatorData', JSON.stringify(appData));
+                alert('生活費の設定が保存されました！');
+            });
+
+            loadLifeCost();
+        });
+    </script>
+</body>
+</html>
