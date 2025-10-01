@@ -55,6 +55,9 @@
                         <button onclick="loadAllSettings()" class="nav-button" style="background-color: #3498db; color: white; flex: 1;">設定ファイルを読み込む</button>
                         <button onclick="downloadAllSettings()" class="nav-button" style="background-color: #f39c12; color: white; flex: 1;">設定をファイルに書き出す</button>
                     </li>
+                    <li style="display: flex; gap: 10px;">
+                        <button onclick="clearAllSettings()" class="nav-button" style="background-color: #c0392b; color: white; flex: 1;">全ての設定をクリア</button>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -79,5 +82,72 @@
     </main>
 
     <script src="app.js"></script>
+
+    <script>
+        function clearAllSettings() {
+            const isConfirmed = confirm('⚠️ 警告: ローカルに保存されている全てのシミュレーション設定データを完全に削除します。この操作は元に戻せません。よろしいですか？');
+
+            if (isConfirmed) {
+                // 設定データが保存されているキーを削除
+                localStorage.removeItem('fireSimulatorData');
+                
+                alert('全ての設定データが正常にクリアされました。\n新しい設定を開始できます。');
+                
+                // ページをリロードして、クリア後の状態を反映させる
+                window.location.reload(); 
+            }
+        }
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const simulationLink = document.querySelector('a[href="simulate.html"]');
+            
+            if (simulationLink) {
+                simulationLink.addEventListener('click', function(event) {
+                    const dataString = localStorage.getItem('fireSimulatorData');
+                    let appData = null;
+
+                    // 1. データ自体が存在するかチェック
+                    if (!dataString) {
+                        event.preventDefault(); // 遷移を阻止
+                        alert('シミュレーションに必要な設定データがありません。\n\n「設定ファイルを読み込む」でデータをロードするか、または「基本設定」「保有証券」などのページで各種設定を行ってください。');
+                        return;
+                    }
+
+                    // 2. データが有効なJSONかチェック
+                    try {
+                        appData = JSON.parse(dataString);
+                    } catch (e) {
+                        event.preventDefault(); // 遷移を阻止
+                        alert('設定データが壊れています。データをクリアして再度設定し直すか、「設定ファイルを読み込む」で正しいファイルをロードしてください。');
+                        return;
+                    }
+
+                    // 3. 最低限必要なデータ（configとstocks）が存在するかチェック
+                    // config (シミュレーション期間など) と stocks (銘柄情報) が最低限必要と仮定
+                    const hasConfig = appData.config && appData.config.period > 0 && appData.config.times > 0;
+                    const hasStocks = appData.stocks && appData.stocks.length > 0;
+
+                    if (!hasConfig || !hasStocks) {
+                        event.preventDefault(); // 遷移を阻止
+                        let message = 'シミュレーションに必要なデータが不足しています。\n\n';
+                        if (!hasConfig) {
+                            message += '・「基本設定」でシミュレーション期間や試行回数が設定されていません。\n';
+                        }
+                        if (!hasStocks) {
+                            message += '・「保有証券」が登録されていません。\n';
+                        }
+                        message += '\n設定ページに戻り、全ての必須項目を入力してください。';
+                        alert(message);
+                        return;
+                    }
+
+                    // データが揃っていれば、そのまま遷移を許可
+                });
+            }
+        });
+    </script>
+
 </body>
 </html>
