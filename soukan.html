@@ -59,76 +59,120 @@
     <script src="app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const soukanContainer = document.getElementById('soukanContainer');
-            const saveSoukanBtn = document.getElementById('saveSoukanBtn');
 
-            const loadSoukanForm = () => {
-                const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
-                const stocks = appData.stocks || [];
-                const soukanData = appData.soukan || [];
-                soukanContainer.innerHTML = '';
-                
-                if (stocks.length > 1) {
-                    for (let i = 0; i < stocks.length; i++) {
-                        for (let j = i + 1; j < stocks.length; j++) {
-                            const meigaraA = stocks[i].Meigara;
-                            const meigaraB = stocks[j].Meigara;
-                            const existingSoukan = soukanData.find(s => 
-                                (s.A_Meigara === meigaraA && s.B_Meigara === meigaraB) ||
-                                (s.A_Meigara === meigaraB && s.B_Meigara === meigaraA)
-                            );
-                            const keisuValue = existingSoukan ? existingSoukan.keisu : 0.0;
+    const soukanContainer = document.getElementById('soukanContainer');
+    const saveSoukanBtn = document.getElementById('saveSoukanBtn');
 
-                            const formHtml = `
-                                <div class="form-group">
-                                    <label>${meigaraA} と ${meigaraB}:</label>
-                                    <input type="number" step="0.01" class="soukan-keisu" 
-                                           data-meigara-a="${meigaraA}" data-meigara-b="${meigaraB}" 
-                                           value="${keisuValue}" required>
-                                </div>
-                            `;
-                            soukanContainer.innerHTML += formHtml;
-                        }
-                    }
-                } else {
-                    soukanContainer.innerHTML = `<p>相関係数を設定するには、2つ以上の銘柄を登録してください。</p>`;
-                }
-            };
+    // ★ 新規追加 ★ 銘柄名から口座種別（＜特定＞, ＜成長＞, etc.）を除去し、ベースの銘柄名（種類）を抽出する関数
+    const extractBaseMeigara = (meigara) => {
+        // 正規表現で「<... >」の部分を削除
+        return meigara.replace(/＜[^＞]+＞$/, '').trim();
+    };
 
-            saveSoukanBtn.addEventListener('click', () => {
-                const soukanData = [];
-                let isValid = true;
-                
-                document.querySelectorAll('.soukan-keisu').forEach(input => {
-                    const value = parseFloat(input.value);
+    const loadSoukanForm = () => {
+        const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
+        const stocks = appData.stocks || [];
+        const soukanData = appData.soukan || [];
+        soukanContainer.innerHTML = '';
+        
+        if (stocks.length < 2) {
+            soukanContainer.innerHTML = `<p>相関係数を設定するには、2つ以上の銘柄を登録してください。</p>`;
+            return;
+        }
 
-                    if (isNaN(value) || value < -1.0 || value > 1.0) {
-                        isValid = false;
-                        input.classList.add('error-input');
-                        return;
-                    } else {
-                        input.classList.remove('error-input');
-                    }
+        // 組み合わせを生成し、フォームを作成（重複は既に排除されている）
+        for (let i = 0; i < stocks.length; i++) {
+            for (let j = i + 1; j < stocks.length; j++) {
+                const meigaraA = stocks[i].Meigara;
+                const meigaraB = stocks[j].Meigara;
 
-                    soukanData.push({
-                        A_Meigara: input.dataset.meigaraA,
-                        B_Meigara: input.dataset.meigaraB,
-                        keisu: value
-                    });
-                });
-
-                if (!isValid) {
-                    alert('相関係数は-1.0から1.0までの数値を入力してください。');
-                    return;
+                // ★ 修正点：ベースの銘柄名が同一の場合、入力をスキップする
+                if (extractBaseMeigara(meigaraA) === extractBaseMeigara(meigaraB)) {
+                    // 同一銘柄なので、相関係数は 1.0 が期待されるため、フォームを生成せずスキップ
+                    continue; 
                 }
 
-                const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
-                appData.soukan = soukanData;
-                localStorage.setItem('fireSimulatorData', JSON.stringify(appData));
-                alert('相関係数の設定が保存されました！');
+                const existingSoukan = soukanData.find(s => 
+                    (s.A_Meigara === meigaraA && s.B_Meigara === meigaraB) ||
+                    (s.A_Meigara === meigaraB && s.B_Meigara === meigaraA)
+                );
+                const keisuValue = existingSoukan ? existingSoukan.keisu : 0.0;
+
+                const formHtml = `
+                    <div class="form-group">
+                        <label>${meigaraA} と ${meigaraB}:</label>
+                        <input type="number" step="0.01" class="soukan-keisu" 
+                               data-meigara-a="${meigaraA}" data-meigara-b="${meigaraB}" 
+                               value="${keisuValue}" required>
+                    </div>
+                `;
+                soukanContainer.innerHTML += formHtml;
+            }
+        }
+        
+        // フォームが一つも生成されなかった場合の処理
+        if (soukanContainer.innerHTML === '') {
+            soukanContainer.innerHTML = `<p>登録されている全ての銘柄は実質的に同一種類であるため、相関係数の設定は不要です。</p>`;
+        }
+    };
+
+    saveSoukanBtn.addEventListener('click', () => {
+        const soukanData = [];
+        let isValid = true;
+        
+        // 既存の銘柄リストを再取得
+        const appData = JSON.parse(localStorage.getItem('fireSimulatorData')) || {};
+        const stocks = appData.stocks || [];
+
+        // ユーザーが入力した相関係数を取得
+        document.querySelectorAll('.soukan-keisu').forEach(input => {
+            const value = parseFloat(input.value);
+
+            if (isNaN(value) || value < -1.0 || value > 1.0) {
+                isValid = false;
+                input.classList.add('error-input');
+                return;
+            } else {
+                input.classList.remove('error-input');
+            }
+
+            soukanData.push({
+                A_Meigara: input.dataset.meigaraA,
+                B_Meigara: input.dataset.meigaraB,
+                keisu: value
             });
+        });
 
-            loadSoukanForm();
+        if (!isValid) {
+            alert('相関係数は-1.0から1.0までの数値を入力してください。');
+            return;
+        }
+
+        // ★ 修正点：入力をスキップした「同一銘柄のペア」の相関係数 1.0 を自動的に追加する
+        for (let i = 0; i < stocks.length; i++) {
+            for (let j = i + 1; j < stocks.length; j++) {
+                const meigaraA = stocks[i].Meigara;
+                const meigaraB = stocks[j].Meigara;
+
+                if (extractBaseMeigara(meigaraA) === extractBaseMeigara(meigaraB)) {
+                    // 同一銘柄の場合は、相関係数 1.0 としてデータに自動追加
+                    soukanData.push({
+                        A_Meigara: meigaraA,
+                        B_Meigara: meigaraB,
+                        keisu: 1.0
+                    });
+                }
+            }
+        }
+        
+        appData.soukan = soukanData;
+        localStorage.setItem('fireSimulatorData', JSON.stringify(appData));
+        alert('相関係数の設定が保存されました！');
+    });
+
+    loadSoukanForm();
+
+
         });
     </script>
 </body>
