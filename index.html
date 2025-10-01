@@ -12,29 +12,16 @@
         <p>あなたの財務データに基づき、FIRE達成の可能性をモンテカルロ・シミュレーションで検証します。</p>
     </header>
 
-    <main>
-        <div class="navigation-container" style="background-color: #f7f9fc; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
-            <h2>📊 なんで「わかりづらいシミュレーションアプリ」を使うべきなの？</h2>
-            <p style="text-align: left; line-height: 1.6; font-size: 1.1em;">
-                多くのシンプルな計算ツールは「毎年〇%のリターンが固定で得られる」という前提（単一の直線）でシミュレーションを行います。<br>しかし、実際の投資市場には「景気の波」があり、毎年リターンが変動します。
-<br>このように、ありないシミュレーションで複利的な資産の増え方を理解しても、それは残念ながら都合の良い妄想でしかなく、その都合の良い妄想で実際にFIREをしたら痛い目を見るかもしれません。
-<br>このシミュレーションの目的は、そのような不幸な人を出さないために作ったものです。
-            </p>
-            <p style="text-align: left; line-height: 1.6; font-size: 1.1em; font-weight: bold;">
-                FIRE計画においては、<span style="color: #c0392b;">市場が思ったように成長しない・暴落・乱高下</span>している中でも、生活出費が発生することが致命的な資産枯渇（FIRE失敗）につながる最大の要因です。
-            </p>
-            <p style="text-align: left; line-height: 1.6;">
-                このシミュレーションは、何千通りもの「乱高下する可能性のある未来」を計算し、そのうち何%のケースで資産が枯渇せずに目標を達成できるかを検証します。
-		<br>
-		１０００回を１度にできるシミュレーション回数としていますが、それを何十回と繰り返して、合計数万回のシミュレーションによる成功確率の終息値を探ってください。
-            </p>
-            <center style="margin: 20px 0;">
-                
-            </center>
-            <p style="text-align: left; line-height: 1.6; font-style: italic; font-size: 0.9em;">
-                本シミュレーションは、「最悪のタイミングでFIREした場合でも計画が耐えうるか」を科学的に評価するためにモンテカルロ法を採用しています。
-            </p>
+        <div class="app-info">
+            <h3>アプリの使い方</h3>
+            <ol>
+                <li>まずは「基本設定」からシミュレーション期間などを設定してください。</li>
+                <li>次に、「保有証券」や「相関係数」などの詳細なデータを入力してください。</li>
+                <li>全ての準備ができたら、「シミュレーション実行」から結果を確認できます。</li>
+            </ol>
         </div>
+
+    <main>
         <div class="navigation-container">
             <h2>設定項目</h2>
             <nav>
@@ -71,14 +58,32 @@
             </nav>
         </div>
 
-        <div class="app-info">
-            <h3>アプリの使い方</h3>
-            <ol>
-                <li>まずは「基本設定」からシミュレーション期間などを設定してください。</li>
-                <li>次に、「保有証券」や「相関係数」などの詳細なデータを入力してください。</li>
-                <li>全ての準備ができたら、「シミュレーション実行」から結果を確認できます。</li>
-            </ol>
+        <div class="navigation-container" style="background-color: #f7f9fc; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
+            <h2>📊 なんで「わかりづらいシミュレーションアプリ」を使うべきなの？</h2>
+            <p style="text-align: left; line-height: 1.6; font-size: 1.1em;">
+                多くのシンプルな計算ツールは「毎年〇%のリターンが固定で得られる」という前提（単一の直線）でシミュレーションを行います。<br>しかし、実際の投資市場には「景気の波」があり、毎年リターンが変動します。
+<br>このように、ありないシミュレーションで複利的な資産の増え方を理解しても、それは残念ながら都合の良い妄想でしかなく、その都合の良い妄想で実際にFIREをしたら痛い目を見るかもしれません。
+<br>このシミュレーションの目的は、そのような不幸な人を出さないために作ったものです。
+            </p>
+            <p style="text-align: left; line-height: 1.6; font-size: 1.1em; font-weight: bold;">
+                FIRE計画においては、<span style="color: #c0392b;">市場が思ったように成長しない・暴落・乱高下</span>している中でも、生活出費が発生することが致命的な資産枯渇（FIRE失敗）につながる最大の要因です。
+            </p>
+            <p style="text-align: left; line-height: 1.6;">
+                このシミュレーションは、何千通りもの「乱高下する可能性のある未来」を計算し、そのうち何%のケースで資産が枯渇せずに目標を達成できるかを検証します。
+		<br>
+		最大で１０００回を１度にできるシミュレーション回数としていますが、それを繰り返して、シミュレーションによる成功確率の収束値を探ってください。
+		<br>
+		成功するとしても、調子よく成功するケースと、荒波の中で成功するケースがあることを確認しましょう。
+            </p>
+            <center style="margin: 20px 0;">
+                
+            </center>
+            <p style="text-align: left; line-height: 1.6; font-style: italic; font-size: 0.9em;">
+                本シミュレーションは、「最悪のタイミングでFIREした場合でも計画が耐えうるか」を科学的に評価するためにモンテカルロ法を採用しています。
+            </p>
         </div>
+
+
     </main>
 
     <script src="app.js"></script>
