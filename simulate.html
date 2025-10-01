@@ -1087,16 +1087,33 @@
                     type: 'line',
                     data: {
                         labels: labels,
-                        datasets: [{
-                            label: '(9) 総資産の推移',
-                            data: data,
-                            borderColor: result.success ? '#3498db' : '#e74c3c', // 成功:青, 失敗:赤
-                            backgroundColor: result.success ? 'rgba(52, 152, 219, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            tension: 0.1,
-                            fill: true
-                        }]
+                        datasets: [
+                            // 1. 総資産の推移 (リニア軸 - 左)
+                            {
+                                label: '(9) 総資産の推移 (リニア)',
+                                data: data,
+                                borderColor: result.success ? '#3498db' : '#e74c3c', // 成功:青, 失敗:赤
+                                backgroundColor: result.success ? 'rgba(52, 152, 219, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                tension: 0.1,
+                                fill: true,
+                                yAxisID: 'y' // 左側のリニア軸を使用
+                            },
+                            // 2. 総資産の推移 (対数軸 - 右)
+                            {
+                                label: '(9) 総資産の推移 (対数)',
+                                data: data,
+                                borderColor: '#2ecc71', // 緑色に変更
+                                backgroundColor: 'transparent', // 塗りつぶしなし
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                tension: 0.1,
+                                fill: false, // 塗りつぶしなし
+                                yAxisID: 'y1', // 新しい対数軸を使用
+                                borderDash: [5, 5] // 破線にするなどして区別しやすくする
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
@@ -1107,7 +1124,8 @@
                                 text: `試行 #${result.trialId} の総資産の推移 (${result.success ? '成功' : '失敗'})`
                             },
                             legend: {
-                                display: false
+                                display: true, // 凡例を表示して2つのグラフを区別
+                                position: 'top',
                             }
                         },
                         scales: {
@@ -1121,15 +1139,39 @@
                                     maxTicksLimit: 20
                                 }
                             },
+                            // 左側のY軸 (リニア)
                             y: {
+                                type: 'linear', // 明示的にリニアを設定
+                                position: 'left', // 左側に配置
                                 title: {
                                     display: true,
-                                    text: '総資産額'
+                                    text: '総資産額 (リニアスケール)'
                                 },
                                 beginAtZero: false,
                                 ticks: {
                                     // 軸の目盛りを分かりやすくフォーマット
                                     callback: function (value) {
+                                        return window.formatNumber(value);
+                                    }
+                                }
+                            },
+                            // 右側のY軸 (対数)
+                            y1: {
+                                type: 'logarithmic', // 対数スケールを設定
+                                position: 'right', // 右側に配置
+                                title: {
+                                    display: true,
+                                    text: '総資産額 (対数スケール)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false, // グラフ領域に線を引かない
+                                },
+                                ticks: {
+                                    callback: function (value) {
+                                        // 対数軸は目盛りの値を整形するのに特別な処理が必要な場合がある
+                                        if (value >= 10000000000) return window.formatNumber(value / 10000000000) + '兆';
+                                        if (value >= 100000000) return window.formatNumber(value / 100000000) + '億';
+                                        if (value >= 10000) return window.formatNumber(value / 10000) + '万';
                                         return window.formatNumber(value);
                                     }
                                 }
