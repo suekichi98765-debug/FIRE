@@ -68,6 +68,18 @@
             opacity: 0.8;
         }
 
+        .active-chart-button {
+            /* グラフが表示されているボタンのスタイル */
+            box-shadow: 0 0 5px 3px #f39c12; /* オレンジ色のハイライト */
+            border: 2px solid #e67e22;
+        }
+
+        /* グラフコンテナにダブルクリックを促すカーソルを追加（任意） */
+        #totalAssetChart {
+            cursor: pointer;
+        }
+
+
         /* 4.3. シミュレーション詳細テーブルのデザイン */
         #detail-table-container {
             width: 100%;
@@ -248,6 +260,11 @@
 
     <main>
         <section id="results-summary">
+
+        <div id="dynamic-chart-container" style="display: none; width: 95%; margin: 20px auto; min-height: 350px;">
+            <canvas id="totalAssetChart"></canvas>
+        </div>
+
             <h2>シミュレーション結果の概要</h2>
             <div class="result-stats">
                 <p id="summary-text">データ読み込み中...</p>
@@ -265,10 +282,6 @@
 
         <section id="simulation-detail" style="display: none;">
             <h2 id="detail-title" style="text-align: left;">シミュレーション詳細（試行 #1）</h2>
-
-            <div id="chart-container" style="width: 95%; margin: 30px auto; min-height: 350px;">
-                <canvas id="totalAssetChart"></canvas>
-            </div>
 
             <div id="meigara-legend">
                 <h3>凡例</h3>
@@ -884,6 +897,7 @@
 
         //チャート生成用
         let totalAssetChartInstance = null;
+	let currentActiveButton = null;
 
         // ... (DOM操作と表示制御のコードは変更なし) ...
         document.addEventListener('DOMContentLoaded', () => {
@@ -896,6 +910,11 @@
             const meigaraLegend = document.getElementById('meigara-legend');
             const headerRow1 = document.getElementById('header-row-1');
             const headerRow2 = document.getElementById('header-row-2');
+
+		//グラフの領域
+	    const dynamicChartContainer = document.getElementById('dynamic-chart-container');
+	    const totalAssetChart = document.getElementById('totalAssetChart');
+
 
             let simulationResults = [];
             let currentTrialIndex = -1;
@@ -971,8 +990,9 @@
             /**
              * シミュレーション詳細テーブルに結果を表示
              * @param {number} trialIndex - 表示する試行のインデックス
+             * @param {HTMLElement} clickedButton - クリックされたボタン要素 ← ★★★ この行を追加 ★★★
              */
-            function displaySimulationDetail(trialIndex) {
+            function displaySimulationDetail(trialIndex, clickedButton) {
                 currentTrialIndex = trialIndex;
                 const result = simulationResults[trialIndex];
                 const history = result.history;
@@ -1046,11 +1066,16 @@
                 detailSection.style.display = 'block';
 
 
+		// --- グラフ表示位置の動的変更 ---
+		// クリックされたボタンの直後にグラフコンテナを移動
+		clickedButton.after(dynamicChartContainer);
+		dynamicChartContainer.style.display = 'block';	 // グラフを表示
+
                 //グラフ描画ロジックの追加
                 const labels = history.map(entry => entry.yearMonth);
                 const data = history.map(entry => entry.totalAsset);
 
-                const ctx = document.getElementById('totalAssetChart').getContext('2d');
+                 const ctx = totalAssetChart.getContext('2d'); // totalAssetChart を使用
 
                 // 既存のグラフがあれば破棄して新しい描画に備える
                 if (totalAssetChartInstance) {
@@ -1113,9 +1138,29 @@
                     }
                 });
 
+		// --- グラフのダブルクリックイベントの設定 ---
+		totalAssetChart.ondblclick = () => {
+			hideChart(); // 新しい非表示関数を呼び出す
+		};
+		currentActiveButton = clickedButton; // 最後にアクティブになったボタンを記憶
+
             }
 
-
+	/**
+	 * グラフを非表示にする関数
+	 */
+	function hideChart() {
+		if (totalAssetChartInstance) {
+			totalAssetChartInstance.destroy();
+			totalAssetChartInstance = null;
+		}
+		dynamicChartContainer.style.display = 'none'; // グラフコンテナを非表示
+		// 最後にクリックされたボタンのハイライトを解除したい場合はここで処理
+		if (currentActiveButton) {
+			currentActiveButton.classList.remove('active-chart-button');
+			currentActiveButton = null;
+		}
+	}
 
             /**
              * シミュレーションボタンの表示を更新
@@ -1133,8 +1178,19 @@
                     button.textContent = result.trialId;
 
                     button.addEventListener('click', () => {
-                        displaySimulationDetail(index);
-                    });
+				// 同じボタンがクリックされたら非表示にする
+				if (currentActiveButton === event.currentTarget) {
+					hideChart();
+					return;
+				}
+				// 既にアクティブなボタンがあれば、そのハイライトを解除
+				if (currentActiveButton) {
+					currentActiveButton.classList.remove('active-chart-button');
+				}
+				// 新しくクリックされたボタンをアクティブにし、詳細を表示
+				event.currentTarget.classList.add('active-chart-button');
+				displaySimulationDetail(index, event.currentTarget); // クリックされたボタンを渡す
+			});
 
                     simulationButtonsDiv.appendChild(button);
                 });
